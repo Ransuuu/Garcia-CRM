@@ -1,0 +1,179 @@
+{% extends 'index.html' %}
+
+{% load crispy_forms_tags %} 
+
+{% block content %}
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4 mt-4">
+            <h1 class="h3 mb-0 text-white">Earnings Management</h1>
+        </div>
+
+        <!-- Display Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Earnings Statistics Row -->
+        <div class="row mb-4">
+            <!-- Total This Year -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total This Year</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_year_earnings|default:"0.00" }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- This Month -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">This Month</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">${{ current_month_earnings|default:"0.00" }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-calendar-month fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Last Month -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Last Month</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">${{ last_month_earnings|default:"0.00" }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Sources -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active Sources</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_sources_count|default:"0" }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-briefcase fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Earning Form -->
+        <div class="card o-hidden border-0 shadow-lg my-5">
+            <div class="card-body p-0">
+                <div class="row">
+                    <div class="col-lg-2"></div>
+                    <div class="col-lg-8">
+                        <div class="p-5">
+                            <div class="text-center">
+                                <h1 class="h4 text-gray-900 mb-4">Add an Earning!</h1>
+                            </div>
+                            <form method="POST" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                {{ earning_form | crispy }}
+                                <button type="submit" class="btn btn-danger btn-block">
+                                    <i class="fas fa-plus fa-sm text-white-50"></i> Add Earning
+                                </button>
+                            </form>
+                            <hr>
+                            <div class="text-center">
+                                <a class="small" href="{% url 'dashboard' %}">Back to Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings List -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Your Monthly Earnings</h6>
+            </div>
+            <div class="card-body">
+                {% if earnings %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Year</th>
+                                    <th>Amount</th>
+                                    <th>Source</th>
+                                    <th>Description</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for earning in earnings %}
+                                    <tr>
+                                        <td>{{ earning.get_month_display }}</td>
+                                        <td>{{ earning.year }}</td>
+                                        <td class="font-weight-bold text-success">${{ earning.amount }}</td>
+                                        <td>
+                                            <span class="badge badge-{% if earning.source == 'web_development' %}primary{% elif earning.source == 'consulting' %}success{% elif earning.source == 'design' %}info{% else %}secondary{% endif %}">
+                                                {{ earning.get_source_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ earning.description|default:"No description"|truncatechars:50 }}</td>
+                                        <td>{{ earning.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <a href="#" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this earning record?')">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center">
+                        <i class="fas fa-chart-line fa-3x text-gray-300 mb-3"></i>
+                        <p class="text-muted">No earnings recorded yet. Add your first monthly earning above!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+{% endblock content %}
